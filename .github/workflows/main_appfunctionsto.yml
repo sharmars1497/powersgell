@@ -1,0 +1,39 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Powershell project to Azure Function App - appfunctionsto
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    permissions:
+      id-token: write #This is required for requesting the JWT
+
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
+      
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_72DFF36EAC684970851D39B343165161 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A37B34EDC1464C1384E8DEECFA9DDC19 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_526246C9930D4385AA3EF852FD845E99 }}
+
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: fa
+        with:
+          app-name: 'appfunctionsto'
+          slot-name: 'Production'
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          
