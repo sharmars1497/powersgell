@@ -1,0 +1,38 @@
+# Connect to your Azure account
+Connect-AzAccount
+ 
+# Define the VMs and their resource groups
+$vms = @(
+    @{ ResourceGroupName = "SUMAN-RG"; VmName = "GWB" }
+   
+)
+ 
+# Define the new resource group where snapshots will be stored
+$newResourceGroupName = "SnapshotResourceGroup"
+$location = "EastUS"  # Specify the location for the new resource group
+ 
+ 
+foreach ($vm in $vms){
+    $resourceGroupName = $vm.ResourceGroupName
+    $vmName = $vm.VmName
+ 
+    # Get the VM object
+    $virtualMachine = Get-AzVM -ResourceGroupName $resourceGroupName -Name $vmName
+ 
+    # Get the OS disk name
+    $osDiskName = $virtualMachine.StorageProfile.OsDisk.Name
+ 
+    # Get the OS disk object
+    $osDisk = Get-AzDisk -ResourceGroupName $resourceGroupName -DiskName $osDiskName
+ 
+    # Define the snapshot name
+    $snapshotName = "$($vmName)-osDiskSnapshot-$(Get-Date -Format ('yyyyMMddHHmmss'))"
+ 
+    # Create a snapshot configuration
+    $snapshotConfig = New-AzSnapshotConfig -SourceUri $osDisk.Id -Location $location -CreateOption Copy
+ 
+    # Create the snapshot in the new resource group
+    $snapshot = New-AzSnapshot -ResourceGroupName $newResourceGroupName -SnapshotName $snapshotName -Snapshot $snapshotConfig
+ 
+    Write-Output "Snapshot $snapshotName created for VM $vmName in resource group $resourceGroupName and stored in $newResourceGroupName."
+}
